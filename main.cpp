@@ -1,10 +1,13 @@
 #define CURL_STATICLIB
 #include <iostream>
+#include <fstream>
 #include <curl/curl.h>
 #include "nlohmann/json.hpp"
 
 using json = nlohmann::json;
 
+std::string readURL(std::string filename);
+const std::string file = "config.ini";
 
 //https://stackoverflow.com/a/9786295
 static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp)
@@ -13,10 +16,23 @@ static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* use
     return size * nmemb;
 }
 
+std::string readURL(std::string filename)
+{
+    std::ifstream in;
+    std::string url;
+    in.open(filename.c_str());
+
+    if (in.is_open())
+    {
+        in >> url;
+        in.close();
+    }
+    return url;
+}
+
 
 int main(void)
 {
-    const char* url = "https://www.wp-hosting.no/wp-json/wp/v2/posts";
     CURL* curl;
     CURLcode res;
     std::string readBuffer;
@@ -25,7 +41,7 @@ int main(void)
     if (curl) {
         readBuffer.clear();
         //https://curl.se/libcurl/c/curl_easy_setopt.html
-        curl_easy_setopt(curl, CURLOPT_URL, url);
+        curl_easy_setopt(curl, CURLOPT_URL, readURL(file).c_str());
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
 
